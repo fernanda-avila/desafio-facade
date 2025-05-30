@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Interativo: Projeto StockFacade</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Visualization & Content Choices:
+        - Visão Geral: Text blocks (HTML) from READMEs for project description and objectives. Goal: Inform.
+        - Tecnologias: List with styled text/Unicode (HTML/CSS) for tech stack from README. Goal: Inform.
+        - Estrutura do Banco de Dados: HTML formatted text for schema (from migration file), `<pre>` for migration/seed code. Goal: Explain DB. Interaction: Potentially expandable code snippets (not implemented for brevity but good next step).
+        - StockFacade API: Sections for each method with descriptions (from READMEs) and `<pre>` for Facade code (from .js file). Goal: Detail API. Interaction: Tab-like selection to show/hide method details, plus a new "Generate Summary" button powered by Gemini API.
+        - Configuração e Uso: Text instructions, `<pre>` for Knex config/scripts (from knex.js, package.json). Goal: Guide setup.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. No Chart.js/Plotly needed as the data is descriptive/code-based. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .nav-link.active {
+            background-color: #0284c7; /* sky-600 */
+            color: white;
+        }
+        .code-block {
+            background-color: #1f2937; /* gray-800 */
+            color: #d1d5db; /* gray-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.875rem;
+        }
+        .code-block-header {
+            background-color: #374151; /* gray-700 */
+            color: #e5e7eb; /* gray-200 */
+            padding: 0.5rem 1rem;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            font-weight: bold;
+        }
+        .api-method-nav button.active {
+            background-color: #38bdf8; /* sky-400 */
+            color: #1f2937; /* gray-800 */
+        }
+        .summary-output, .explanation-output {
+            border: 1px solid #cbd5e1; /* slate-300 */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 flex min-h-screen">
+
+    <aside class="w-64 bg-slate-100 p-6 shadow-lg fixed top-0 left-0 h-full overflow-y-auto">
+        <h1 class="text-2xl font-bold text-sky-700 mb-8">Projeto StockFacade</h1>
+        <nav>
+            <ul>
+                <li><a href="#" class="nav-link block py-2 px-3 mb-2 rounded-lg hover:bg-sky-500 hover:text-white transition-colors duration-200 active" data-target="visao-geral">Visão Geral</a></li>
+                <li><a href="#" class="nav-link block py-2 px-3 mb-2 rounded-lg hover:bg-sky-500 hover:text-white transition-colors duration-200" data-target="tecnologias">Tecnologias</a></li>
+                <li><a href="#" class="nav-link block py-2 px-3 mb-2 rounded-lg hover:bg-sky-500 hover:text-white transition-colors duration-200" data-target="db-estrutura">Estrutura do BD</a></li>
+                <li><a href="#" class="nav-link block py-2 px-3 mb-2 rounded-lg hover:bg-sky-500 hover:text-white transition-colors duration-200" data-target="facade-api">StockFacade API</a></li>
+                <li><a href="#" class="nav-link block py-2 px-3 mb-2 rounded-lg hover:bg-sky-500 hover:text-white transition-colors duration-200" data-target="configuracao">Configuração e Uso</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="ml-64 flex-1 p-8 overflow-y-auto">
+        <div id="visao-geral" class="content-section active">
+            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-sky-500 pb-2">Visão Geral do Projeto</h2>
+            <p class="mb-4 text-lg leading-relaxed">
+                Esta aplicação interativa explora o projeto "Desafio: Implementação de Facade com Knex.js". O objetivo principal do desafio original era criar uma camada de <strong>Facade</strong> para gerenciar produtos em um sistema de estoque, utilizando <strong>Knex.js</strong> como construtor de consultas para interagir com um banco de dados SQLite. A classe <code>StockFacade</code> centraliza as operações CRUD (Criar, Ler, Atualizar, Deletar) na tabela <code>stock</code>, incluindo tratamento de erros e respostas padronizadas.
+            </p>
+            <p class="mb-4 text-lg leading-relaxed">
+                Navegue pelas seções ao lado para entender as tecnologias utilizadas, a estrutura do banco de dados, a API da <code>StockFacade</code> em detalhes e como configurar e utilizar o projeto original.
+            </p>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">Objetivos do Desafio Original</h3>
+            <ul class="list-disc list-inside mb-6 space-y-2 text-lg">
+                <li>Implementar o padrão Facade.</li>
+                <li>Aplicar boas práticas de tratamento de erros.</li>
+                <li>Utilizar Knex.js para abstração do banco de dados.</li>
+                <li>Garantir uma interface consistente para operações CRUD.</li>
+            </ul>
+        </div>
+
+        <div id="tecnologias" class="content-section">
+            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-sky-500 pb-2">Tecnologias Utilizadas</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                O projeto original utiliza um conjunto de tecnologias modernas para desenvolvimento backend com Node.js e gerenciamento de banco de dados. Esta seção detalha as principais ferramentas e bibliotecas empregadas.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">Node.js</h3>
+                    <p class="text-slate-700">Ambiente de execução JavaScript server-side, permitindo a construção de aplicações backend eficientes.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">Knex.js</h3>
+                    <p class="text-slate-700">Construtor de consultas SQL para Node.js, facilitando a interação com diversos bancos de dados (SQLite, PostgreSQL, MySQL, etc.) de forma flexível e segura.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">SQLite</h3>
+                    <p class="text-slate-700">Banco de dados SQL embutido, leve e baseado em arquivo, utilizado no ambiente de desenvolvimento do projeto.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">JSDoc</h3>
+                    <p class="text-slate-700">Linguagem de marcação para documentar código JavaScript, ajudando a gerar documentação da API.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">NPM</h3>
+                    <p class="text-slate-700">Gerenciador de pacotes padrão do Node.js, utilizado para instalar e gerenciar as dependências do projeto.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+                    <h3 class="text-xl font-semibold text-sky-700 mb-2">@faker-js/faker</h3>
+                    <p class="text-slate-700">Biblioteca para gerar dados fictícios em grande quantidade, útil para popular o banco de dados em desenvolvimento e testes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="db-estrutura" class="content-section">
+            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-sky-500 pb-2">Estrutura do Banco de Dados</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                A estrutura do banco de dados é definida através de arquivos de migração do Knex.js. Esta seção detalha a tabela `stock` e como ela é populada inicialmente com dados de exemplo.
+            </p>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">Definição da Tabela `stock`</h3>
+            <p class="mb-4 text-lg">A tabela <code>stock</code> armazena informações sobre os produtos no estoque. Suas colunas são:</p>
+            <ul class="list-disc list-inside mb-6 space-y-2 bg-white p-4 rounded-lg shadow">
+                <li><strong>id:</strong> <code>INTEGER</code> - Chave primária auto-incrementável.</li>
+                <li><strong>product_name:</strong> <code>STRING</code> - Nome do produto (não pode ser nulo).</li>
+                <li><strong>quantity:</strong> <code>INTEGER</code> - Quantidade em estoque (padrão 0).</li>
+                <li><strong>unit:</strong> <code>STRING</code> - Unidade de medida (ex: 'unid', 'kg', 'litro') (não pode ser nulo).</li>
+                <li><strong>created_at:</strong> <code>TIMESTAMP</code> - Data e hora de criação do registro.</li>
+                <li><strong>updated_at:</strong> <code>TIMESTAMP</code> - Data e hora da última atualização do registro.</li>
+            </ul>
+
+            <div class="code-block-header mt-6">Código da Migração (<code>create_stock_table.js</code>)</div>
+            <pre class="code-block mb-6"><code class="language-javascript">
+exports.up = async function(knex) {
+  await knex.schema.createTable('stock', function(table) {
+    table.increments('id').primary();
+    table.string('product_name').notNullable();
+    table.integer('quantity').defaultTo(0);
+    table.string('unit').notNullable();
+    table.timestamps(true, true);
+  });
+};
+
+exports.down = async function(knex) {
+  await knex.schema.dropTable('stock');
+};
+            </code></pre>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">População Inicial de Dados (Seed)</h3>
+            <p class="mb-4 text-lg">
+                Para facilitar o desenvolvimento e testes, o banco de dados é populado com dados fictícios usando um arquivo de "seed" do Knex.js e a biblioteca <code>@faker-js/faker</code>. São gerados 10 produtos aleatórios.
+            </p>
+            <div class="code-block-header mt-6">Código da Seed (<code>stock_seed.js</code>)</div>
+            <pre class="code-block"><code class="language-javascript">
+const { faker } = require('@faker-js/faker');
+
+exports.seed = async function(knex) {
+  // Deletes ALL existing entries
+  await knex('stock').del();
+
+  const stocks = [];
+
+  for (let i = 0; i < 10; i++) {
+    stocks.push({
+      product_name: faker.commerce.productName(),
+      quantity: faker.number.int({ min: 1, max: 100 }), 
+      unit: faker.helpers.arrayElement(['unid', 'kg', 'litro', 'm']),
+      created_at: new Date(),
+      updated_at: new Date()
+    });
+  }
+
+  // Inserts seed entries
+  await knex('stock').insert(stocks);
+};
+            </code></pre>
+        </div>
+
+        <div id="facade-api" class="content-section">
+            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-sky-500 pb-2">StockFacade API</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                A classe <code>StockFacade</code> é o coração da lógica de acesso a dados para a entidade de estoque. Ela encapsula as interações com o banco de dados, fornecendo uma interface simplificada e padronizada para as operações CRUD e tratamento de erros. Explore os métodos abaixo para entender sua funcionalidade e implementação.
+            </p>
+            
+            <div class="flex border-b border-slate-300 mb-6 api-method-nav">
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none active" data-target="method-getAllProducts">getAllProducts</button>
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none" data-target="method-getById">getById</button>
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none" data-target="method-create">create</button>
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none" data-target="method-update">update</button>
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none" data-target="method-delete">delete</button>
+                <button class="api-method-tab py-2 px-4 text-slate-600 hover:text-sky-600 focus:outline-none" data-target="method-returnDefaultError">returnDefaultError</button>
+            </div>
+
+            <div id="method-details-container">
+                <div id="method-getAllProducts" class="api-method-content active">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>getAllProducts()</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Retorna todos os produtos cadastrados na tabela <code>stock</code>.</p>
+                    <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static async getAllProducts() {
+  try {
+    const products = await db(this.table).select('*');
+    return { error: false, data: products };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+
+                <div id="method-getById" class="api-method-content" style="display: none;">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>getById(id)</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Retorna um produto específico da tabela <code>stock</code> com base no <code>id</code> fornecido. Retorna um erro customizado se o produto não for encontrado.</p>
+                    <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static async getById(id) {
+  try {
+    const product = await db(this.table).where({ id }).first();
+    if (!product) {
+      return { error: true, message: 'Produto não encontrado' };
+    }
+    return { error: false, data: product };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+                
+                <div id="method-create" class="api-method-content" style="display: none;">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>create(data)</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Insere um novo produto na tabela <code>stock</code> com os dados fornecidos (<code>nome</code>, <code>quantidade</code>, <code>unidade</code>). Retorna os dados completos do novo produto, incluindo <code>id</code>, <code>created_at</code> e <code>updated_at</code>.</p>
+                     <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static async create(data) {
+  try {
+    const [id] = await db(this.table).insert(data).returning('id');
+    const product = await db(this.table).where({ id }).first();
+    return { error: false, data: product };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+
+                <div id="method-update" class="api-method-content" style="display: none;">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>update(id, data)</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Atualiza os dados de um produto existente com base no <code>id</code>. Retorna os dados atualizados. Retorna um erro específico caso o produto não seja encontrado.</p>
+                    <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static async update(id, data) {
+  try {
+    const updated = await db(this.table).where({ id }).update(data);
+    if (!updated) {
+      return { error: true, message: 'Produto não encontrado para atualizar' };
+    }
+    const product = await db(this.table).where({ id }).first();
+    return { error: false, data: product };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+
+                <div id="method-delete" class="api-method-content" style="display: none;">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>delete(id)</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Remove um produto da tabela <code>stock</code> com base no <code>id</code>. Retorna <code>{ deleted: 1 }</code> em caso de sucesso. Retorna um erro específico caso o produto não seja encontrado.</p>
+                    <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static async delete(id) {
+  try {
+    const deleted = await db(this.table).where({ id }).del();
+    if (!deleted) {
+      return { error: true, message: 'Produto não encontrado para excluir' };
+    }
+    return { error: false, data: { deleted } };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+                
+                <div id="method-returnDefaultError" class="api-method-content" style="display: none;">
+                    <h4 class="text-xl font-semibold text-sky-700 mb-2"><code>returnDefaultError(error)</code></h4>
+                    <p class="mb-3 text-slate-700 method-description">Método utilitário para padronizar a estrutura de erro retornada em qualquer método da classe. Recebe um objeto de erro e retorna um objeto formatado com <code>error: true</code> e uma mensagem padronizada.</p>
+                    <div class="code-block-header">Código do Método</div>
+                    <pre class="code-block method-code"><code class="language-javascript">
+static returnDefaultError(error) {
+  return {
+    error: true,
+    message: `[StockFacade]: ${error.message || 'Unexpected error!'}`
+  };
+}
+                    </code></pre>
+                    <div class="flex space-x-2 mt-4">
+                        <button class="generate-summary-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Gerar Resumo</button>
+                        <button class="generate-explanation-btn bg-sky-500 text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition-colors duration-200">✨ Explicar Código</button>
+                    </div>
+                    <div class="loading-indicator mt-4 text-sky-600 hidden">Carregando...</div>
+                    <div class="summary-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                    <div class="explanation-output mt-4 p-4 bg-slate-100 rounded-lg text-slate-700 hidden"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="configuracao" class="content-section">
+            <h2 class="text-3xl font-semibold text-slate-900 mb-6 border-b-2 border-sky-500 pb-2">Configuração e Uso</h2>
+            <p class="mb-6 text-lg leading-relaxed">
+                Esta seção descreve como o Knex.js é configurado no projeto original e como as operações de banco de dados (migrações e seeds) são executadas através de scripts NPM.
+            </p>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">Configuração do Knex.js</h3>
+            <p class="mb-4 text-lg">
+                O Knex.js é inicializado no arquivo <code>database/knex.js</code>. Ele carrega as configurações do arquivo <code>knexfile.cjs</code> (não exibido aqui, mas essencial para a conexão com o banco de dados) e exporta a instância do Knex configurada para o ambiente de desenvolvimento.
+            </p>
+            <div class="code-block-header mt-6">Arquivo <code>database/knex.js</code></div>
+            <pre class="code-block mb-6"><code class="language-javascript">
+const knex = require('knex')
+const knexfile = require('./knexfile.cjs') // Assume knexfile.cjs exists
+
+const db = knex(knexfile.development)
+// Linha de teste para verificar a conexão:
+// db('stock').then(res => console.log(res)) 
+
+module.exports = db
+            </code></pre>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">Scripts NPM para Gerenciamento do Banco</h3>
+            <p class="mb-4 text-lg">
+                O arquivo <code>package.json</code> define scripts para facilitar a execução de comandos Knex:
+            </p>
+            <div class="code-block-header mt-6">Trecho do <code>package.json</code> (scripts)</div>
+            <pre class="code-block"><code class="language-json">
+"scripts": {
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "knex:migrate:make": "npx knex migrate:make --knexfile ./database/knexfile.cjs",
+  "knex:migrate:latest": "npx knex migrate:latest --knexfile ./database/knexfile.cjs",
+  "knex:seed:make": "npx knex seed:make --knexfile ./database/knexfile.cjs",
+  "knex:seed:run": "npx knex seed:run --knexfile ./database/knexfile.cjs"
+}
+            </code></pre>
+            <p class="mt-4 text-lg">Esses scripts permitem:</p>
+            <ul class="list-disc list-inside mb-6 space-y-2 bg-white p-4 rounded-lg shadow">
+                <li><code>npm run knex:migrate:make &lt;nome_da_migracao&gt;</code>: Criar um novo arquivo de migração.</li>
+                <li><code>npm run knex:migrate:latest</code>: Executar todas as migrações pendentes para atualizar o esquema do banco.</li>
+                <li><code>npm run knex:seed:make &lt;nome_da_seed&gt;</code>: Criar um novo arquivo de seed.</li>
+                <li><code>npm run knex:seed:run</code>: Executar os arquivos de seed para popular o banco de dados.</li>
+            </ul>
+
+            <h3 class="text-2xl font-semibold text-slate-900 mt-8 mb-4">Requisitos do Projeto Original</h3>
+            <ul class="list-disc list-inside space-y-2 text-lg bg-white p-4 rounded-lg shadow">
+                <li>Node.js instalado.</li>
+                <li>Banco de dados configurado (SQLite neste caso) e migrado com a tabela <code>stock</code>.</li>
+                <li>Knex.js configurado no projeto (arquivo <code>knexfile.cjs</code>).</li>
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const apiMethodTabs = document.querySelectorAll('.api-method-tab');
+            const apiMethodContents = document.querySelectorAll('.api-method-content');
+            const generateSummaryBtns = document.querySelectorAll('.generate-summary-btn');
+            const generateExplanationBtns = document.querySelectorAll('.generate-explanation-btn'); // New button selector
+
+            function showSection(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    }
+                });
+            }
+            
+            function showApiMethod(targetId) {
+                apiMethodContents.forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('active');
+                    // Hide any previous summaries/explanations and loading indicators when changing tabs
+                    content.querySelector('.summary-output').classList.add('hidden');
+                    content.querySelector('.explanation-output').classList.add('hidden');
+                    content.querySelector('.loading-indicator').classList.add('hidden');
+
+                    if (content.id === targetId) {
+                        content.style.display = 'block';
+                        content.classList.add('active');
+                    }
+                });
+            }
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetId = this.getAttribute('data-target');
+                    showSection(targetId);
+                });
+            });
+
+            apiMethodTabs.forEach(tab => {
+                tab.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    apiMethodTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    const targetId = this.getAttribute('data-target');
+                    showApiMethod(targetId);
+                });
+            });
+
+            // Function to call Gemini API
+            async function callGeminiAPI(prompt, outputElement, loadingIndicator) {
+                outputElement.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+                outputElement.innerHTML = ''; // Clear previous output
+
+                try {
+                    let chatHistory = [];
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                    
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        outputElement.innerHTML = `<h5 class="font-semibold mb-2">Resposta Gerada por ✨Gemini:</h5><p>${text}</p>`;
+                        outputElement.classList.remove('hidden');
+                    } else {
+                        outputElement.innerHTML = `<p class="text-red-500">Erro: Não foi possível gerar a resposta. Tente novamente.</p>`;
+                        outputElement.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error("Erro ao chamar a API Gemini:", error);
+                    outputElement.innerHTML = `<p class="text-red-500">Erro ao conectar com o serviço de IA. Verifique sua conexão ou tente novamente.</p>`;
+                    outputElement.classList.remove('hidden');
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            }
+
+            generateSummaryBtns.forEach(button => {
+                button.addEventListener('click', async function() {
+                    const parentContent = this.closest('.api-method-content');
+                    const methodDescription = parentContent.querySelector('.method-description').textContent;
+                    const methodCode = parentContent.querySelector('.method-code code').textContent;
+                    const summaryOutput = parentContent.querySelector('.summary-output');
+                    const explanationOutput = parentContent.querySelector('.explanation-output'); // Hide explanation if summary is generated
+                    const loadingIndicator = parentContent.querySelector('.loading-indicator');
+
+                    explanationOutput.classList.add('hidden'); // Ensure explanation is hidden
+                    const prompt = `Resuma e explique o seguinte método JavaScript, incluindo seu propósito, como ele funciona com o banco de dados e o que ele retorna, em português. O código é parte de uma classe StockFacade que interage com um banco de dados usando Knex.js.
+
+Descrição: ${methodDescription}
+
+Código:
+\`\`\`javascript
+${methodCode}
+\`\`\``;
+                    await callGeminiAPI(prompt, summaryOutput, loadingIndicator);
+                });
+            });
+
+            generateExplanationBtns.forEach(button => { // New event listener for explanation button
+                button.addEventListener('click', async function() {
+                    const parentContent = this.closest('.api-method-content');
+                    const methodDescription = parentContent.querySelector('.method-description').textContent;
+                    const methodCode = parentContent.querySelector('.method-code code').textContent;
+                    const summaryOutput = parentContent.querySelector('.summary-output'); // Hide summary if explanation is generated
+                    const explanationOutput = parentContent.querySelector('.explanation-output');
+                    const loadingIndicator = parentContent.querySelector('.loading-indicator');
+
+                    summaryOutput.classList.add('hidden'); // Ensure summary is hidden
+                    const prompt = `Explique detalhadamente o seguinte código JavaScript, focando em sua lógica, o que cada parte faz, e quaisquer boas práticas ou padrões de design que ele demonstra. Se houver oportunidades de melhoria ou refatoração, por favor, mencione-as. O código é parte de uma classe StockFacade que interage com um banco de dados usando Knex.js. Responda em português.
+
+Descrição: ${methodDescription}
+
+Código:
+\`\`\`javascript
+${methodCode}
+\`\`\``;
+                    await callGeminiAPI(prompt, explanationOutput, loadingIndicator);
+                });
+            });
+
+            // Initialize first section and first API method
+            if (navLinks.length > 0) {
+                showSection(navLinks[0].getAttribute('data-target'));
+            }
+            if(apiMethodTabs.length > 0) {
+                showApiMethod(apiMethodTabs[0].getAttribute('data-target'));
+            }
+        });
+    </script>
+
+</body>
+</html>
