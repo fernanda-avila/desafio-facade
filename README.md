@@ -24,3 +24,31 @@ Todos os métodos agora utilizam a função returnDefaultError para padronizar m
 Tratamento explícito de erros para situações como:
 Produto não encontrado (getById, update, delete)
 Falhas em operações de banco de dados.
+
+#### Possível erro
+No método "create":
+
+const [id] = await db(this.table).insert(data).returning('id');
+
+Esse método pode não funcionar em outros banco de dados que não sejam o PostgreeSQL (banco de dados não relacional).
+
+Possível correção: 
+
+static async create(data) {
+  try {
+    let id;
+    // Tenta usar returning (PostgreSQL)
+    if (db.client && db.client.config && db.client.config.client === 'pg') {
+      [id] = await db(this.table).insert(data).returning('id');
+      if (typeof id === 'object' && id.id) id = id.id; // Ajuste para retorno como objeto
+    } else {
+      // Para SQLite3 e outros
+      id = await db(this.table).insert(data);
+      if (Array.isArray(id)) id = id[0];
+    }
+    const product = await db(this.table).where({ id }).first();
+    return { error: false, data: product };
+  } catch (error) {
+    return this.returnDefaultError(error);
+  }
+}
