@@ -1,0 +1,22 @@
+{
+  "name": "ex_01",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "knex:migrate:make": "npx knex migrate:make --knexfile ./database/knexfile.cjs",
+    "knex:migrate:latest": "npx knex migrate:latest --knexfile ./database/knexfile.cjs",
+    "knex:seed:make": "npx knex seed:make --knexfile ./database/knexfile.cjs",
+    "knex:seed:run": "npx knex seed:run --knexfile ./database/knexfile.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@faker-js/faker": "^9.8.0",
+    "knex": "^3.1.0",
+    "sqlite3": "^5.1.7"
+  }
+}
